@@ -1,0 +1,26 @@
+---
+  # Configuration sample file for Jingo (YAML)
+  application:
+    title: "Jingo"
+    repository: "/Users/claudioc/Sites/jingo/documents"
+    docSubdir: "kappa"
+    remote: ""
+    pushInterval: 30
+    secret: "change me"
+  server:
+    hostname: "localhost"
+    port: 6067
+    localOnly: true
+  authentication:
+    google:
+      enabled: true
+    alone:
+      enabled: true
+      username: "mio dio"
+      passwordHash: "c3923186c4c9da9c766af46f22a325cd4677020a"
+      email: ""
+  authorization:
+    anonRead: true
+    validMatches: ".+"
+
+# claudio c3923186c4c9da9c766af46f22a325cd4677020a

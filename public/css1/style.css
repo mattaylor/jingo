@@ -1,0 +1,322 @@
+ body {
+  padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+  font-family: "Ubuntu";
+  background-color: #f2f2f2;
+  background-image: url(/img/bodybg.png);
+}
+a {
+  color: #4183c4;
+}
+
+a[href^="https://"],
+a[href^="http://"] {
+  background: url(/img/ext.png) center right no-repeat;
+  padding-right: 13px;
+}
+
+p.user {
+  float: right;
+  color: white;
+  padding: 8px 0 0;
+  margin-bottom: 0px;
+}
+
+#main {
+  overflow: auto;
+  background-color: white;
+  box-shadow: 0 0 5px silver;
+}
+
+#content {
+  padding: 20px
+}
+
+#content li {
+  line-height: 1.92;
+}
+
+#message {
+  margin-top: 40px;
+}
+
+label {
+  font-weight: bold;
+}
+
+p {
+  margin-bottom: 20px;
+  line-height: 1.92;
+}
+
+hr {
+  border-color: #e1e1e1;
+}
+
+dl.search-results dd {
+  margin-bottom: 15px;
+}
+
+h2,
+h1 {
+  border-bottom: 1px solid #ddd;
+  font-family:"Ubuntu Condensed"
+}
+
+h1 {
+  font-size: 32px;
+}
+
+h2 {
+  font-size: 24px;
+}
+
+h3 {
+  font-size: 18px;
+}
+
+h2,
+h1 {
+  margin: 0 0 20px 0;
+}
+
+h3 {
+  margin: 0 0 10px 0;
+}
+
+#main > h2 {
+  margin: 20px;
+}
+
+#content > h2 {
+  margin-top: 40px;
+}
+
+code {
+  color: #666;
+}
+
+hr {
+  background: transparent url(/img/hr-bg.png) repeat-x 0 0;
+  border: 0 none;
+  color: #ccc;
+  height: 4px;
+  padding: 0;
+  margin: 10px 0;
+}
+
+.history td:first-child {
+  width: 10px;
+}
+
+.page-param {
+  color: #145AB0;
+}
+
+.compare {
+  font-family: Consolas, monospace;
+  font-size: 12px;
+}
+
+.compare td {
+  padding: 0 3px;
+  border-top-width: 0
+}
+
+.compare .gd {
+  background-color: #ffdddd;
+}
+
+.compare .gc {
+  color: #999999;
+  background-color: #EAF2F5;
+}
+
+.compare .gi {
+  background-color: #ddffdd;
+}
+
+.compare .ln {
+  color: #999999;
+  background-color: #EAF2F5;
+  text-align: right;
+  border-bottom-color: transparent;
+}
+
+/* Overrides Bootstrap */
+.navbar-inverse .navbar-inner {
+  background-image: none;
+}
+
+pre {
+  background-color: transparent;
+  border-width: 0;
+  padding: 0;
+  margin-bottom: 20px;
+}
+
+.alert {
+ margin: 20px 20px 0 20px;
+}
+
+pre code {
+  white-space: nowrap;
+}
+
+code {
+  white-space: auto;
+}
+
+ul > li {
+  margin-top: 8px;
+}
+
+ul.doc-list {
+  margin: 0;
+  padding: 0;
+}
+
+ul.doc-list > li {
+  list-style-type: none;
+  padding: 0px 10px;
+  background-color: #f8f8f8;
+  border: 1px solid #ccc;
+  margin-bottom: 10px;
+  border-radius: 3px;
+}
+
+.footer {
+  border-top: 1px dashed #d1d1d1;
+  color: #c1c1c1;
+  padding: 20px;
+  margin: 0;
+  font-size: 90%;
+}
+
+.doc-list .footer {
+  padding: 10px 0;
+}
+
+.page-actions-row {
+  position: fixed;
+  margin-top: -62px;
+  background-color: rgba(27,27,27,.3);
+  border: 1px solid gray;
+  padding: 0 10px;
+  right: 280px;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+}
+
+.page-actions {
+  position: relative;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+  line-height: 250%;
+  background-color: rgba(27,27,27);
+  border-bottom-left-radius: 5px;
+}
+
+.page-actions-handle {
+  background-color: #4183c4;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+  position: absolute;
+  width: 35px;
+  height: 14px;
+  right: 0;
+  left: 60%;
+  color: white;
+  top: 41px;
+  text-align: center;
+  font-size: 9px;
+  line-height: 12px;
+  margin: 0;
+}
+
+.page-actions > li {
+  display: inline;
+  list-style-type: none;
+}
+
+body #syntax-reference,
+body #preview {
+  width: 50%; /* desired relative width */
+  left: 25%; /* (100%-width)/2 */
+  margin: auto auto auto auto; /* place center */
+}
+
+/* Needed for wideArea */
+.markItUpHeader {
+  position: relative;
+  z-index: 2;
+}
+
+.markItUpEditor {
+  height: 500px !important;
+  font-family: Consolas, monospace !important;
+}
+
+input#pageTitle {
+  font-weight: bold;
+  font-size: 130%;
+}
+
+.cheatsheet-content .col {
+  float: left;
+  width: 30%;
+  margin-left: 10px;
+}
+
+.cheatsheet-content pre {
+  border: 1px solid #ddd;
+  background-color: #eee;
+  border-radius: 3px;
+  width: 100%;
+  padding: 5px;
+  font-size: 12px;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+.cheatsheet-content hr {
+  clear: both;
+}
+
+.search-results .nl {
+  color: #aaa;
+}
+
+a.absent {
+  color: red;
+}
+
+form.edit {
+  border-radius: 4px;
+  width: 96%;
+}
+
+form.edit input[type=text] {
+  width: 98%;
+}
+form.edit textarea {
+  width: 103%;
+}
+
+li {
+  margin-bottom: 5px;
+}
+
+
+@media (min-width: 768px) and (max-width: 979px) {
+  body {
+    padding-top: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  body {
+    padding-top: 0;
+  }
+}

@@ -1,0 +1,435 @@
+#!/usr/bin/env node
+
+/*
+ * Jingo, wiki engine
+ * http://github.com/claudioc/jingo
+ *
+ * Copyright 2013 Claudio Cicali <claudio.cicali@gmail.com>
+ * Released under the MIT license
+ */
+
+var express        = require('express')
+  , http           = require('http')
+  , path           = require('path')
+  , passport       = require('passport')
+  , Git            = require('./lib/gitmech')
+  , Tools          = require("./lib/tools")
+  , expValidator   = require('express-validator')
+  , gravatar       = require('gravatar')
+  , Fs             = require('fs')
+  , Url            = require('url')
+  , Marked         = require('marked')
+  , GoogleStrategy = require('passport-google').Strategy
+  , LocalStrategy  = require('passport-local').Strategy
+  , yaml           = require('yaml-js')
+  , Flash          = require('connect-flash')
+  , program        = require('commander');
+
+program.version('0.4.3')
+       .option('-c, --config <path>', 'Specify the config file')
+       .option('-#, --hash-string <string>', 'Create an hash for a string')
+       .option('-l, --local', 'Listen on localhost only')
+       .option('-s, --sample-config', 'Dumps a config file template and exits')
+       .parse(process.argv);
+
+if (program.sampleConfig) {
+  console.log(sampleConfig());
+  process.exit(0);
+}
+
+if (program.hashString) {
+  console.log(Tools.hashify(program.hashString));
+  process.exit(0);
+}
+
+if (!program.config || !Fs.existsSync(program.config)) {
+  program.help();
+  process.exit(-1);
+}
+
+var config = yaml.load(Fs.readFileSync(program.config).toString());
+
+if (!config.application || !config.server) {
+  console.log("Error: a problem exists in the config file. Cannot continue.");
+  process.exit(-1);
+}
+
+try {
+  Git.setup(config.application.repository, config.application.docSubdir || "");
+} catch(e) {
+  console.log(e.message)
+  program.help()
+  process.exit(-1);
+}
+
+// Global to be accessed from the routes module
+global.app = express();
+app.locals.Git = Git;
+app.locals._sidebar;
+app.locals._footer;
+app.locals._style;
+app.locals._script;
+app.locals.appTitle = config.application.title || "Jingo";
+app.locals.port = config.server.port || process.env.PORT || 6067;
+app.locals.hostname = config.server.hostname || "localhost";
+// baseUrl is used as the public url
+app.locals.baseUrl = config.server.baseUrl || ("http://" + app.locals.hostname + ":" + app.locals.port)
+app.locals.authorization = config.authorization || { anonRead: false, validMatches: ".+" };
+app.locals.secret = config.application.secret || "jingo-secret-67";
+app.locals.ticketHost = config.tickets.host; // || 'www.assembla.com';
+app.locals.ticketPath = config.tickets.path;
+app.locals.ticketAuth = config.tickets.auth;
+
+var refspec = config.application.remote ? config.application.remote.split(/\s+/) : "";
+if (!refspec) {
+  app.locals.remote = "";
+  app.locals.branch = "";
+} else {
+  app.locals.remote = refspec[0].trim();
+  app.locals.branch = refspec[1] ? refspec[1].trim() : "master";
+}
+
+app.locals.pushInterval = config.application.pushInterval ? parseInt(config.application.pushInterval, 10) * 1000 : 30000;
+app.locals.coalesce = function(value, def) {
+  return typeof value === 'undefined' ? def : value;
+}
+app.locals.pretty = true; // Pretty HTML output from Jade
+
+if (!config.application || !config.server) {
+  console.log("Error: a problem exists in the config file. Cannot continue.");
+  process.exit(-1);
+}
+
+app.locals.authorization = config.authorization || { anonRead: false, validMatches: ".+" };
+var auth = app.locals.authentication = config.authentication || { google: { enabled: true }, alone: { enabled: false } };
+
+if ( (!auth.google || !auth.google.enabled) && 
+     (!auth.alone  || !auth.alone.enabled) ) {
+  console.log("Error: no authentication method provided. Cannot continue.");
+  process.exit(-1);
+}
+
+var routes = require("./routes");
+var Renderer = require('./lib/renderer');
+
+app.configure(function() {
+  app.use(express.errorHandler());
+  app.set('port', app.locals.port);
+  app.set('views', __dirname + '/views');
+  app.set('view engine', 'jade');
+  app.use(express.favicon());
+  app.use(express.static(path.join(__dirname, 'public')));
+  app.use(express.logger('default'));
+  app.use(express.cookieParser(app.locals.secret));
+  app.use(express.cookieSession({ secret: "jingo-" + app.locals.secret, cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 }})); // a Month
+  app.use(express.bodyParser());
+  app.use(expValidator());
+  app.use(express.methodOverride());
+  app.use(passport.initialize());
+  app.use(passport.session());
+  app.use(Flash());
+  app.use(function (req, res, next) {
+    res.locals({
+      get user() {
+        return req.user;
+      },
+      isAnonymous: function () {
+        return !req.user;
+      },
+      canSearch: function () {
+        return !!req.user || app.locals.authorization.anonRead;
+      },
+      _sidebar: null,
+      _footer: null,
+      _style: null,
+      _script: null,
+      gravatar: function(email) {
+        return gravatar;
+      },
+      // FIXME: we need to handle these has* better, because we're hitting the
+      // fs for every single request even if we cache the sidebar/footer/etc
+      hasSidebar: function() {
+        return Fs.existsSync(Git.absPath("_sidebar.md"));
+      },
+      hasFooter: function() {
+        return Fs.existsSync(Git.absPath("_footer.md"));
+      },
+      hasCustomStyle: function() {
+        return Fs.existsSync(Git.absPath("_style.css"));
+      },
+      hasCustomScript: function() {
+        return Fs.existsSync(Git.absPath("_script.js"));
+      }
+    });
+
+    next();
+  });
+
+  // Logic to include custom _footer, _sidebar, _script and _style.css
+  app.use(function (req, res, next) {
+
+    if (res.locals.hasSidebar()) {
+      if (!app.locals._sidebar) {
+        Git.readFile("_sidebar.md", "HEAD", function(err, content) {
+          if (!err) {
+            //res.locals.sidebar = app.locals._sidebar = Marked(content.split("\n").splice(1).join("\n"));
+            res.locals.sidebar = app.locals._sidebar = Renderer.render(content.split("\n").splice(1).join("\n"));
+          }
+        });
+      } else {
+        res.locals._sidebar = app.locals._sidebar;
+      }
+    } else {
+      res.locals._sidebar = app.locals._sidebar = null;
+    }
+
+    if (res.locals.hasFooter()) {
+      if (!app.locals._footer) {
+        Git.readFile("_footer.md", "HEAD", function(err, content) {
+          if (!err) {
+            res.locals._footer = app.locals._footer = Marked(content.split("\n").splice(1).join("\n"));
+          }
+        });
+      } else {
+        res.locals._footer = app.locals._footer;
+      }
+    } else {
+      res.locals._footer = app.locals._footer = null;
+    }
+
+    if (res.locals.hasCustomStyle()) {
+      if (!app.locals._style) {
+        // Read sync because this info is needed by the layout
+        res.locals._style = app.locals._style = Fs.readFileSync(Git.absPath("_style.css"));
+      } else {
+        res.locals._style = app.locals._style;
+      }
+    } else {
+      res.locals._style = app.locals._style = null;
+    }
+
+    if (res.locals.hasCustomScript()) {
+      if (!app.locals._script) {
+        // Read sync because this info is needed by the layout
+        res.locals._script = app.locals._script = Fs.readFileSync(Git.absPath("_script.js"));
+      } else {
+        res.locals._script = app.locals._script;
+      }
+    } else {
+      res.locals._script = app.locals._script = null;
+    }
+
+    next();
+  });
+
+  app.use(app.router);
+});
+
+function requireAuthentication(req, res, next) {
+  if (!res.locals.user) {
+    res.redirect("/login");
+    /*
+    res.statusCode = 403;
+    res.end('<h1>Forbidden</h1>');
+    */
+  } else {
+    next();
+  }
+}
+
+/* 
+ * Passport configuration
+ */
+
+passport.use(new GoogleStrategy({
+    returnURL: app.locals.baseUrl + '/auth/google/return',
+    realm: app.locals.baseUrl
+  },
+
+  function(identifier, profile, done) {
+    usedAuthentication("google");
+    done(undefined, profile);
+  }
+));
+
+passport.use(new LocalStrategy(
+
+  function(username, password, done) {
+
+    var user = {
+      displayName: auth.alone.username,
+      email: auth.alone.email || ""
+    };
+
+    if (username != auth.alone.username || Tools.hashify(password) != auth.alone.passwordHash) {
+      return done(null, false, { message: 'Incorrect username or password' });
+    }
+
+    usedAuthentication("alone");
+
+    return done(null, user);
+  }
+));
+
+passport.serializeUser(function(user, done) {
+  done(null, user);
+});
+
+passport.deserializeUser(function(user, done) {
+  if (user.emails && user.emails.length > 0) { // Google
+    user.email = user.emails[0].value;
+    delete user.emails;
+  }
+  user.asGitAuthor = user.displayName + " <" + user.email + ">"; 
+  done(undefined, user);
+});
+
+function usedAuthentication(name) {
+  for (var a in app.locals.authentication) {
+    app.locals.authentication[a].used = (a == name);
+  }
+}
+
+app.all("/pages/*", requireAuthentication);
+
+if (!app.locals.authorization.anonRead) {
+  app.all("/wiki/*", requireAuthentication);
+  app.all("/search", requireAuthentication);
+}
+
+app.get    ("/",                      routes.index);
+app.get    ("/wiki",                  routes.pageList);
+app.get    ("/wiki/:page",            routes.pageShow);
+app.get    ("/wiki/:page/history",    routes.pageHistory);
+app.get    ("/wiki/:page/:version",   routes.pageShow);
+app.get    ("/wiki/:page/compare/:revisions", routes.pageCompare);
+
+app.get    ("/search",                routes.search);
+
+app.get    ("/pages/new",             routes.pageNew);
+app.get    ("/pages/new/:page",       routes.pageNew);
+app.post   ("/pages",                 routes.pageCreate);
+
+app.get    ("/pages/:page/edit",      routes.pageEdit);
+app.put    ("/pages/:page",           routes.pageUpdate);
+app.post   ("/edit/:page",            routes.pageUpdate);
+app.delete ("/pages/:page",           routes.pageDestroy);
+
+app.post   ("/misc/preview",          routes.miscPreview);
+app.get    ("/misc/syntax-reference", routes.miscSyntaxReference);
+app.get    ("/misc/existence",        routes.miscExistence);
+
+app.post   ("/login",                 passport.authenticate('local', { successRedirect: '/auth/done', failureRedirect: '/login', failureFlash: true }));
+app.get    ("/login",                 routes.login);
+app.get    ("/logout",                routes.logout);
+
+app.get    ("/auth/google",           passport.authenticate('google'));
+app.get    ("/auth/google/return",    passport.authenticate('google', { successRedirect: '/auth/done', failureRedirect: '/login' }));
+app.get    ("/auth/done",             routes.authDone);
+
+app.get    ("/data/:page",	      routes.pageData);
+
+app.all('*', routes.error404);
+
+var listenAddr = process.env.NW_ADDR || "";
+if (config.server.localOnly) {
+  listenAddr = "localhost";
+}
+
+http.createServer(app).listen(app.get('port'), listenAddr, function(){
+  console.log((new Date()) + " - Jingo%sserver listening on port %s", config.server.localOnly ? " (local) " : " ", app.get('port'));
+});
+
+if (app.locals.remote != "") {
+  setInterval(function() {
+    Git.pull(app.locals.remote, app.locals.branch, function(err) {
+      if (err) {
+        console.log("Error: " + err);
+      } else {
+        Git.push(app.locals.remote, app.locals.branch, function(err) {
+          if (err) {
+            console.log("Error: " + err);
+          }
+        });
+      }
+    });
+  }, app.locals.pushInterval);
+}
+
+// Dumps a sample config file
+function sampleConfig() {
+  return "\
+---\n\
+  # Configuration sample file for Jingo (YAML)\n\
+  application:\n\
+    title: \"Jingo\"\n\
+    repository: \"/absolute/path/to/your/repo\"\n\
+    docSubdir: \"\"\n\
+    remote: \"\"\n\
+    pushInterval: 30\n\
+    secret: \"change me\"\n\
+  server:\n\
+    hostname: \"localhost\"\n\
+    port: 6067\n\
+    localOnly: false\n\
+    baseUrl: \"http://localhost:6067\"\n\
+  authorization:\n\
+    anonRead: true\n\
+    validMatches: \".+\"\n\
+  authentication:\n\
+    google:\n\
+      enabled: true\n\
+    alone:\n\
+      enabled: false\n\
+      username: \"\"\n\
+      passwordHash: \"\"\n\
+      email: \"\"\n\
+";
+}
+
+function parsePuml (lang, code) { 
+//   if (lang=="puml") return "<img uml=\"#{CGI.escape("\n"+code+"\n")}\">";
+}
+
+/*
+function transclude (tag, content) {
+        if tag.chars.first != '+'
+          return
+        end
+        parts  = tag[1..-1].split('|')
+        page_name = parts[0].strip
+        title = parts[1]
+        level = parts[2]
+        if !level
+            level = 4
+        end
+        page_path = @dir;
+        @wiki.incStack << @name.split('.')[0]
+        if @wiki.incStack.include?(page_name)
+            return %{<div class="wiki-include" id="#{page_name}"><b><em>#{page_name}</em> Already Included</b></div>}
+        end
+        page, extra = find_page_from_name(page_name)
+        if page
+            page_data = page.formatted_data
+            page_data.gsub(/^<h\d>([\<]+)<\/h\d>/, '')
+            #if !title && $~[1]
+            #   title = $~[1]
+            $end
+            page_path = page.url_path
+        end
+        if page_name =~ /^(d+)$/
+            page_edit = "https://www.assembla.com/spaces/pharos1/tickets/#{$~[1]}#/edit/ticket:"
+        else
+            page_edit = "/edit/#{page_path}"
+        end
+        if page_data
+            if title && level
+                title = "<h#{level}> #{title} </h#{level}>"
+            end
+            %{ #{title} <div class="wiki-include" id="#{page_path}"> <a class="wiki-include-edit" href="#{page_edit}">#{page_name}</a> #{page_data} </div>}
+        else
+            %{<div class="wiki-include" id="#{page_name}"><b>INCLUDE <em><a href="/create/#{@dir.gsub(/^doc\//,'')}/#{page_name}">#{page_name}</a></em> NOT FOUND</b></div>}
+        end
+    end
+}
+*/

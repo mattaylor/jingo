@@ -1,0 +1,23 @@
+extends layout
+
+block content
+  h2 #{title}
+  #content
+    ul.doc-list
+      each item in items
+        if item.metadata 
+          li 
+            a(href="/wiki/#{item.metadata.name}") #{item.pageTitle}
+ 
+            div.footer.clearfix Updated by 
+              ul.page-actions.pull-right
+                if !isAnonymous()
+                  li 
+                    a(href="/pages/#{item.metadata.name}/edit").btn.btn-small Edit page
+                li
+                  a(href="/wiki/#{item.metadata.name}/history").btn.btn-small Page History
+              img(src=gravatar().url("#{item.metadata.email}", {s:16}))
+              b  #{item.metadata.author}, 
+              b(title="#{item.metadata.date}") #{item.metadata.relDate} 
+              | &ndash; #{item.metadata.hash}
+

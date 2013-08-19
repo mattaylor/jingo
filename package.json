@@ -1,0 +1,65 @@
+{
+  "name": "jingo",
+  "version": "0.4.3",
+  "description": "A nodejs based wiki engine (sort of Gollum port)",
+  "author": {
+    "name": "Claudio Cicali",
+    "email": "claudio.cicali@gmail.com"
+  },
+  "main": "jingo",
+  "bin": {
+    "jingo": "./jingo"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/claudioc/jingo"
+  },
+  "directories": {
+    "lib": "./lib/"
+  },
+  "dependencies": {
+    "express": "3.x",
+    "jade": "*",
+    "passport": "*",
+    "passport-google": "*",
+    "passport-local": "*",
+    "iconv": "*",
+    "marked": ">= 0.2.x",
+    "node-syntaxhighlighter": "*",
+    "gravatar": ">= 1.0.6",
+    "express-validator": ">= 0.3.0",
+    "commander": "*",
+    "connect-flash": "*",
+    "yaml-js": "*"
+  },
+  "devDependencies": {
+    "chai": "*",
+    "mocha": "*"
+  },
+  "scripts": {
+    "test": "mocha test/spec"
+  },
+  "engines": {
+    "node": "0.8.x",
+    "npm": "1.1.x"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://github.com/claudioc/jingo/raw/master/LICENSE"
+    }
+  ],
+  "contributors": [
+    {
+      "name": "Claudio Cicali",
+      "email": "claudio.cicali@gmail.com"
+    },
+    {
+      "name": "http://ccl.me"
+    }
+  ],
+  "readme": "JINGO\n=====\n\nA simple git based _wiki engine_ written for Node.js.\n\nThe aim of this wiki engine is to provide a very easy way to create a centralized\ndocumentation area for people used to working with git and markdown. It should fit well\ninto a development team without the need to learn or install ad-hoc servers or applications. \nJingo is very much inspired by the github wiki system (gollum), but tries to be more \na stand-alone and complete system than gollum is.\n\nThink of jingo as \"the github wiki, without github but with more features\". \"Jingo\" \nmeans \"Jingo is not Gollum\" for a reason.\n\nThere is a demo server running at http://jingo.cicali.cc:6067/wiki/home\n\nFeatures\n--------\n\n- No database: uses a git repository as the document archive\n- No user management: authentication provided via with Google logins or simple login\n- Markdown for everything, [github flavored](http://github.github.com/github-flavored-markdown/)\n- Uses [Markitup](http://markitup.jaysalvat.com/home/) as the markup editor, with a nice (ajax) preview\n- Uses [WideArea](http://usablica.github.io/widearea/) for a \"distraction free\" mode\n- Inspired by the well known github [Gollum](https://github.com/github/gollum) wiki\n- Show differences between document revisions\n- Search through the content _and_ the page names\n- Layout accepts custom sidebar and footer\n- Gravatar support\n- Can include <iframe>s in the document (es: embed a Google Drive document)\n- Can use custom CSS and JavaScript scripts\n- White list for authorization on page reading and writing\n- Detects unwritten pages (will appear in red)\n- Automatically push to a remote\n\nFor code syntax highlighting, Jingo uses the `node-syntaxhighlighter` module. For the\nlist of supported languages, please refer to [this page](https://github.com/thlorenz/node-syntaxhighlighter/tree/master/lib/scripts).\n\nKnown limitations\n-----------------\n\n- The authentication is mandatory (no anonymous writing allowed). See also issue #4\n- The repository is \"flat\" (no directories or namespaces)\n- Authorization is only based on a regexp'ed white list with matches on the user email address\n- There is one authorization level only (no \"administrators\" and \"editors\")\n- At the moment there is no \"restore previous revision\", just a revision browser\n- No scheduled pull or fetch from the remote is provided (because handling conflicts would be \n  a bit too... _interesting_)\n\nPlease note that at the moment it is quite \"risky\" to have someone else, other than jingo itself, \nhave write access to the remote jingo is pushing to. The push operation is supposed to always be \nsuccessfull and there is no pull or fetch. You can of course manage to handle pull requests yourself.\n\nInstallation\n------------\n\n`npm install jingo` or download the whole thing and run \"npm install\"\n\nJingo needs a config file and to create a sample config file, just run `jingo -s`, redirect the \noutput on a file and then edit it. The config file contains all the available configuration keys. \nBe sure to provide a valid server hostname (like wiki.mycompany.com) for Google Auth to be able \nto get back to you.\n\nIf you define a `remote` to push to, then jingo will automatically issue a push to that remote every \n`pushInterval` seconds. You can also specify a branch using the syntax \"remotename branchnama\". If you \ndon't specify a branch, that will be `master`.\nPlease note that before the `push`, a `pull` will also be issued (at the moment Jingo will not try\nto resolve conflicts, though).\n\nThe basic command to run the wiki will then be\n\n`jingo -c /path/to/config.yaml` (using `forever -w` is highly recommended, though)\n\nBefore running jingo you need to initialize its git repository somewhere (`git init` is enough).\n\nIf you define a remote to push to, be sure that the user who'll push has the right to do so.\n\nIf your documents reside in subdirectory of your repository, you need to specify its name using the \n`docSubdir` configuration option. The `repository` path _must_ be an absolute path pointing to the \nroot of the repository.\n\nIf you want your wiki server to only listen to your `localhost`, set the configuration key `localOnly` to true.\n\nCommon problems\n---------------\n\nSometimes upgrading your version of node.js could break the `iconv` module. Try updating it with `npm install iconv`.\n\nAuthentication and Authorization\n--------------------------------\n\nThe _authorization_ section of the config file has two keys: anonRead and validMatches. If the \nanonRead is true, then anyone can read anything.\nIf anonRead is false you need to authenticate also for reading and then the email of the user _must_ \nmatch at least one of the regular expressions provided via validMatches, which is a comma separated \nlist. There is no \"anonWrite\", though. To edit a page the user must be authenticated.\n\nThe authentication is mandatory to edit pages from the web interface, but jingo works on a git repository;\nthat means that you could skip the authentication altogether and edit pages with your editor and push \nto the remote that jingo is serving.\n\nYou can enable two authentication methodologies: _Google logins_ or a simple, locally verified \nusername/password credentials match (called \"alone\").\n\nIf you use the _alone_ method, you can have _only one user_ accessing the wiki (thus the name).\n\nThe _Google Login_ doesn't need any configuration option: just enable it in the config file (it's enabled by default),\nbut assure yourself that the `baseUrl` configuration variable  points to something that Google can reach (\"http://localhost:6067\"\nis fine but you could have Jingo proxied via another web server which listens on the :80, for example).\n\nThe _alone_ method uses a `username`, a `passwordHash` and optionally an `email`. The password is hashed\nusing a _non salted_ SHA-1 algorithm, which makes this method not the safest in the world but at least you don't have\na clear text password in the config file. To generate the hash, use the `--hash-string` program option: once\nyou get the hash, copy it in the config file.\n\nYou can enable both authentication options at the same time. The `alone` is disabled by default.\n\nCustomization\n-------------\n\nYou can customize jingo in four different ways:\n\n- add a left sidebar to every page: just add a file named `_sidebar.md` containing the markdown you \n  want to display to the repository. You can edit or create the sidebar from jingo itself, visiting \n  `/wiki/_sidebar` (note that the title of the page in this case is useless)\n- add a footer to every page: the page you need to create is \"_footer.md\" and the same rules for the \n  sidebar apply\n- add a custom CSS file, included in every page as the last file. The name of the file must be `_style.css` \n  and must reside in the repository. It is not possible to edit the file from jingo itself\n- add a custom JavaScript file, included in every page as the last JavaScript file. The name of the file must \n  be `_script.js` and must reside in the repository. It is not possible to edit the file from jingo itself\n\nAll those files are cached (thus, not re-read for every page load, but kept in memory). This means that for \nevery modification in _style.css and _script.js you need to restart the server (sorry, working on that). \nThis is not true for the footer and the sidebar but ONLY IF you edit those pages from jingo (which in that \ncase will clear the cache by itself).\n\njingo uses twitter Bootstrap and jQuery as its front-end components. \n\nEditing\n-------\n\nTo link to another Jingo wiki page, use the Jingo Page Link Tag.\n\n    [[Jingo Works]]\n\nThe above tag will create a link to the corresponding page file named\n`jingo-works.md`. The conversion is as follows:\n\n  1. Replace any spaces (U+0020) with dashes (U+002D)\n  2. Replace any slashes (U+002F) with dashes (U+002D)\n\nIf you'd like the link text to be something that doesn't map directly to the\npage name, you can specify the actual page name after a pipe:\n\n    [[How Jingo works|Jingo Works]]\n\nThe above tag will link to `jingo-works.md` using \"How Jingo Works\" as the link text.\n\n",
+  "readmeFilename": "README.md",
+  "_id": "jingo@0.4.3",
+  "_from": "jingo"
+}
