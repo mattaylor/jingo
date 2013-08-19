@@ -13,31 +13,19 @@ var express        = require('express')
   , path           = require('path')
   , passport       = require('passport')
   , Git            = require('./lib/gitmech')
-<<<<<<< HEAD
   , Tools          = require("./lib/tools")
-=======
-  , Tools          = require('./lib/tools')
-  , Renderer       = require('./lib/renderer')
->>>>>>> e5edcebeb2e0c968f0731ca7d603c6f12684aad8
   , expValidator   = require('express-validator')
   , gravatar       = require('gravatar')
   , Fs             = require('fs')
   , Url            = require('url')
-<<<<<<< HEAD
   , Marked         = require('marked')
-=======
->>>>>>> e5edcebeb2e0c968f0731ca7d603c6f12684aad8
   , GoogleStrategy = require('passport-google').Strategy
   , LocalStrategy  = require('passport-local').Strategy
   , yaml           = require('yaml-js')
   , Flash          = require('connect-flash')
   , program        = require('commander');
 
-<<<<<<< HEAD
 program.version('0.4.3')
-=======
-program.version('0.4.4')
->>>>>>> e5edcebeb2e0c968f0731ca7d603c6f12684aad8
        .option('-c, --config <path>', 'Specify the config file')
        .option('-#, --hash-string <string>', 'Create an hash for a string')
        .option('-l, --local', 'Listen on localhost only')
@@ -88,12 +76,9 @@ app.locals.hostname = config.server.hostname || "localhost";
 app.locals.baseUrl = config.server.baseUrl || ("http://" + app.locals.hostname + ":" + app.locals.port)
 app.locals.authorization = config.authorization || { anonRead: false, validMatches: ".+" };
 app.locals.secret = config.application.secret || "jingo-secret-67";
-<<<<<<< HEAD
 app.locals.ticketHost = config.tickets.host; // || 'www.assembla.com';
 app.locals.ticketPath = config.tickets.path;
 app.locals.ticketAuth = config.tickets.auth;
-=======
->>>>>>> e5edcebeb2e0c968f0731ca7d603c6f12684aad8
 
 var refspec = config.application.remote ? config.application.remote.split(/\s+/) : "";
 if (!refspec) {
@@ -125,10 +110,7 @@ if ( (!auth.google || !auth.google.enabled) &&
 }
 
 var routes = require("./routes");
-<<<<<<< HEAD
 var Renderer = require('./lib/renderer');
-=======
->>>>>>> e5edcebeb2e0c968f0731ca7d603c6f12684aad8
 
 app.configure(function() {
   app.use(express.errorHandler());
@@ -190,12 +172,8 @@ app.configure(function() {
       if (!app.locals._sidebar) {
         Git.readFile("_sidebar.md", "HEAD", function(err, content) {
           if (!err) {
-<<<<<<< HEAD
             //res.locals.sidebar = app.locals._sidebar = Marked(content.split("\n").splice(1).join("\n"));
             res.locals.sidebar = app.locals._sidebar = Renderer.render(content.split("\n").splice(1).join("\n"));
-=======
-            res.locals._sidebar = app.locals._sidebar = Renderer.render(content.split("\n").splice(1).join("\n"));
->>>>>>> e5edcebeb2e0c968f0731ca7d603c6f12684aad8
           }
         });
       } else {
@@ -209,11 +187,7 @@ app.configure(function() {
       if (!app.locals._footer) {
         Git.readFile("_footer.md", "HEAD", function(err, content) {
           if (!err) {
-<<<<<<< HEAD
             res.locals._footer = app.locals._footer = Marked(content.split("\n").splice(1).join("\n"));
-=======
-            res.locals._footer = app.locals._footer = Renderer.render(content.split("\n").splice(1).join("\n"));
->>>>>>> e5edcebeb2e0c968f0731ca7d603c6f12684aad8
           }
         });
       } else {
@@ -287,11 +261,7 @@ passport.use(new LocalStrategy(
       email: auth.alone.email || ""
     };
 
-<<<<<<< HEAD
     if (username != auth.alone.username || Tools.hashify(password) != auth.alone.passwordHash) {
-=======
-    if (username.toLowerCase() != auth.alone.username.toLowerCase() || Tools.hashify(password) != auth.alone.passwordHash) {
->>>>>>> e5edcebeb2e0c968f0731ca7d603c6f12684aad8
       return done(null, false, { message: 'Incorrect username or password' });
     }
 
@@ -342,10 +312,7 @@ app.post   ("/pages",                 routes.pageCreate);
 
 app.get    ("/pages/:page/edit",      routes.pageEdit);
 app.put    ("/pages/:page",           routes.pageUpdate);
-<<<<<<< HEAD
 app.post   ("/edit/:page",            routes.pageUpdate);
-=======
->>>>>>> e5edcebeb2e0c968f0731ca7d603c6f12684aad8
 app.delete ("/pages/:page",           routes.pageDestroy);
 
 app.post   ("/misc/preview",          routes.miscPreview);
@@ -360,11 +327,8 @@ app.get    ("/auth/google",           passport.authenticate('google'));
 app.get    ("/auth/google/return",    passport.authenticate('google', { successRedirect: '/auth/done', failureRedirect: '/login' }));
 app.get    ("/auth/done",             routes.authDone);
 
-<<<<<<< HEAD
 app.get    ("/data/:page",	      routes.pageData);
 
-=======
->>>>>>> e5edcebeb2e0c968f0731ca7d603c6f12684aad8
 app.all('*', routes.error404);
 
 var listenAddr = process.env.NW_ADDR || "";
@@ -422,7 +386,6 @@ function sampleConfig() {
       email: \"\"\n\
 ";
 }
-<<<<<<< HEAD
 
 function parsePuml (lang, code) { 
 //   if (lang=="puml") return "<img uml=\"#{CGI.escape("\n"+code+"\n")}\">";
@@ -470,5 +433,3 @@ function transclude (tag, content) {
     end
 }
 */
-=======
->>>>>>> e5edcebeb2e0c968f0731ca7d603c6f12684aad8
