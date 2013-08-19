@@ -32,7 +32,11 @@ Features
 - White list for authorization on page reading and writing
 - Detects unwritten pages (will appear in red)
 - Automatically push to a remote
-
+- Support for transclusion of wiki pages within each other using `[[+{title}|{pageName}]]`
+- Support for automatic updates of external ticketing systems where pageName is `{{ticketId}}-{title}`
+- Support for puml image generation where the code-lang in fenced blocks is `puml`
+- Support for collapsible lists
+- Support for livepreview as an editor
 For code syntax highlighting, Jingo uses the `node-syntaxhighlighter` module. For the
 list of supported languages, please refer to [this page](https://github.com/thlorenz/node-syntaxhighlighter/tree/master/lib/scripts).
 
