@@ -2,15 +2,11 @@
 var Marked = require("marked")
   , Crypto = require('crypto')
   , Nsh    = require('node-syntaxhighlighter')
-<<<<<<< HEAD
   , Fs             = require('fs')
   , Namer  = require("../lib/namer");
   
 var fragCache = {};
 var Git = app.locals.Git;
-=======
-  , Namer  = require("../lib/namer");
->>>>>>> e5edcebeb2e0c968f0731ca7d603c6f12684aad8
 
 Marked.setOptions({
   gfm: true,
@@ -20,10 +16,7 @@ Marked.setOptions({
   sanitize: false, // To be able to add iframes 
   highlight: function(code, lang) {
     lang = lang || "text";
-<<<<<<< HEAD
     if (lang == 'puml') return '<img uml="'+encodeURIComponent('\n'+code+'\n')+'">';
-=======
->>>>>>> e5edcebeb2e0c968f0731ca7d603c6f12684aad8
     return Nsh.highlight(code, Nsh.getLanguage(lang) || Nsh.getLanguage('text'), {gutter: lang !== 'text'});
   }
 });
@@ -65,26 +58,16 @@ function evalTags(text) {
 
   for (var k in tagmap) {
     parts = tagmap[k].split("|");
-<<<<<<< HEAD
     name = pageName = parts[0].trim();
     //mathack
-=======
-    name = pageName = parts[0];
->>>>>>> e5edcebeb2e0c968f0731ca7d603c6f12684aad8
     if (parts[1]) {
       pageName = parts[1];
     }
     pageName = Namer.normalize(pageName);
-<<<<<<< HEAD
     if (tagmap[k].charAt(0) == '+') tagmap[k] = transclude(name.substring(1), pageName);
     else tagmap[k] = "<a class=\"internal\" href=\"/wiki/" + pageName + "\">" + name + "</a>";
   }
 
-=======
-
-    tagmap[k] = "<a class=\"internal\" href=\"/wiki/" + pageName + "\">" + name + "</a>";
-  }
->>>>>>> e5edcebeb2e0c968f0731ca7d603c6f12684aad8
 
   for (k in tagmap) {
     re = new RegExp(k, "g");
@@ -96,7 +79,6 @@ function evalTags(text) {
   //return text.replace(/\n/g, "");
 }
 
-<<<<<<< HEAD
 function transclude(name, pageName) { 
    /*
    Git.readFile(pageName + ".md", "HEAD", function(err, content) {
@@ -117,20 +99,15 @@ function transclude(name, pageName) {
    return name +'\n<div class="include">'+content+'</div>';
 }
 
-=======
->>>>>>> e5edcebeb2e0c968f0731ca7d603c6f12684aad8
 var Renderer = {
 
   render: function(content) {
     var text = extractTags(content);
     text = evalTags(text);
     return Marked(text);
-<<<<<<< HEAD
     //var text = Marked(content);
     //return evalTags(extractTags(text));
     
-=======
->>>>>>> e5edcebeb2e0c968f0731ca7d603c6f12684aad8
   }
 
 };

@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "name": "jingo",
   "version": "0.4.3",
   "description": "A nodejs based wiki engine (sort of Gollum port)",
@@ -17,6 +18,21 @@
   "directories": {
     "lib": "./lib/"
   },
+=======
+  "name":        "jingo",
+  "version":     "0.4.4",
+  "description": "A nodejs based wiki engine (sort of Gollum port)",
+  "author":      "Claudio Cicali <claudio.cicali@gmail.com>",
+  "main":        "jingo",
+  "bin": {
+    "jingo": "./jingo"
+  },
+  "repository" :
+    { "type" : "git",
+      "url" : "https://github.com/claudioc/jingo"
+    },
+  "directories" : { "lib" : "./lib/" },
+>>>>>>> e5edcebeb2e0c968f0731ca7d603c6f12684aad8
   "dependencies": {
     "express": "3.x",
     "jade": "*",
@@ -43,6 +59,7 @@
     "node": "0.8.x",
     "npm": "1.1.x"
   },
+<<<<<<< HEAD
   "licenses": [
     {
       "type": "MIT",
@@ -62,4 +79,11 @@
   "readmeFilename": "README.md",
   "_id": "jingo@0.4.3",
   "_from": "jingo"
+=======
+  "licenses":
+   [ { "type" : "MIT"
+     , "url" : "http://github.com/claudioc/jingo/raw/master/LICENSE"
+    }
+   ]
+>>>>>>> e5edcebeb2e0c968f0731ca7d603c6f12684aad8
 }

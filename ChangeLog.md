@@ -1,9 +1,26 @@
+=======
+Version 0.5.0, Aug 19th, 2013
+
+- Transclusion support
+- Remote Ticket updates
+- PlantUml 
+- Livepreview support
+- CSS improvements
+
+=======
+Version 0.4.4, July 23th, 2013
+
+- Better typography
+
 Version 0.4.3, July 10th, 2013
 =============================
 
 - Closes #19
 - Better line height for LI
-- Refines PR #20 
+=============================
+
+- Closes #19
+- Better line height for LI
 
 Version 0.4.2, June 29th, 2013
 =============================
