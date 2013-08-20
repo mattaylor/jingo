@@ -10,6 +10,7 @@ html
     link(rel="stylesheet", href="//fonts.googleapis.com/css?family=Ubuntu|Ubuntu+Condensed")
     link(rel="stylesheet", href="/css/style.css")
     link(rel="stylesheet", href="/css/template.css")
+    link(rel="stylesheet", href="/vendor/jquery.tocify.css")
     link(rel="stylesheet", href="/css/shCoreDefault.css")
     block styles
     if hasCustomStyle()
@@ -40,10 +41,11 @@ html
         block page-actions
 
       .row-fluid
-        div(style="position: fixed").span2.well.well-large 
-          .sidebar
+        div(style="position: fixed").span2 
+          #toc.toc
+          .sidebar.toc.tocify.nav-list
             !{_sidebar}
-
+        
         #main.hide-tools.span10.pull-right.markdown-body
           block content
 
@@ -56,8 +58,13 @@ html
       window.jQuery || document.write("<sc" + "ript src='/vendor/jquery.min.js'></scr" + "ipt>");
     script(src="/vendor/bootstrap/js/bootstrap.min.js")
     script(src="/js/app.js")
+    script(src="/vendor/jquery-ui-1.10.3.custom.min.js")
+    script(src="/vendor/jquery.tocify.min.js")
     script.
       Jingo.init();
+      $(function() {
+         $('#toc').tocify({context:'#content', selectors:'h2, h3, h4'});
+      });
     block scripts
     if hasCustomScript()
       script.
