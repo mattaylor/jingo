@@ -9,6 +9,7 @@ html
     link(rel="stylesheet", href="/vendor/bootstrap/css/bootstrap-responsive.min.css")
     link(rel="stylesheet", href="//fonts.googleapis.com/css?family=Ubuntu|Ubuntu+Condensed")
     link(rel="stylesheet", href="/css/style.css")
+    link(rel="stylesheet", href="/css/template.css")
     link(rel="stylesheet", href="/css/shCoreDefault.css")
     block styles
     if hasCustomStyle()
@@ -43,7 +44,7 @@ html
           .sidebar
             !{_sidebar}
 
-        #main.hide-tools.span10.pull-right
+        #main.hide-tools.span10.pull-right.markdown-body
           block content
 
       if hasFooter()
